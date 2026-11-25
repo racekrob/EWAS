@@ -455,6 +455,14 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
       for (const e of ADJ[x]) { if (!isMainRoad(x, e) || used.has(RK(x, e.to)) || seen.has(e.to)) continue; seen.add(e.to); q.push(e.to); } }
     return false;
   }
+  const BANKS_I = T.map((t, i) => t.t === 'B' ? i : -1).filter(i => i >= 0), DISTB = {};
+  BANKS_I.forEach(b => { const d = new Array(T.length).fill(1e9); d[b] = 0; const q = [b];
+    while (q.length) { const x = q.shift(); for (const e of ADJ[x]) { if (!isMainRoad(x, e)) continue; if (d[e.to] > d[x] + 1) { d[e.to] = d[x] + 1; q.push(e.to); } } }
+    DISTB[b] = d; });
+  const stepsTo = (a, b) => { if (a < 0 || b < 0) return 1e9; const d = new Map([[a, 0]]), q = [a];
+    while (q.length) { const x = q.shift(); if (x === b) return d.get(x); if (d.get(x) >= 14) continue;
+      for (const e of ADJ[x]) { if (!isMainRoad(x, e) || d.has(e.to)) continue; d.set(e.to, d.get(x) + 1); q.push(e.to); } }
+    return 1e9; };
   const COLORS = [
     { id: 'blue', name: 'Modrá', hex: '#1f6fd1' }, { id: 'red', name: 'Červená', hex: '#d62828' },
     { id: 'green', name: 'Zelená', hex: '#2a9d3c' }, { id: 'yellow', name: 'Žlutá', hex: '#f2c418' },
@@ -1016,6 +1024,12 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
     if (g.phase === 'buy' && g.cur === i) v += deep ? buyValue(g, i, g.offer) : 2500;
     const pos = P(g, i).pos;
     if (deep && T[pos] && T[pos].t === 'B') v += 500;
+    if (pos >= 0 && T[pos].loop === 'main') {
+      const pl = P(g, i); let pot = 0;
+      for (const b of BANKS_I) { if (!payBank(pl, b)) continue; const d = DISTB[b][pos]; if (d >= 1e9) continue;
+        pot = Math.max(pot, bankPayout(g, i, b).sum / (1 + d / 6)); }
+      if (deep) v += 0.45 * pot;
+    }
     return v;
   }
   // těžká úroveň: Mafii si najme, když nejbohatší soupeř je nablízku nebo ho výrazně předbíhá
@@ -1039,7 +1053,7 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
         else if (o.c === 'treni' && spare > 60000) buyCard(g, p.i, o.c);
         else if (o.c.startsWith('tm_') && spare > 80000) buyCard(g, p.i, o.c);
         else if (o.c === 'prebornik' && okresCount(g, p.i) >= 8 && spare > 20000) buyCard(g, p.i, o.c);
-        else if (o.c === 'mafia' && spare >= 10000 && mafiaWorth(g, p)) buyCard(g, p.i, o.c);
+        else if (o.c === 'mafia' && (g.players.filter(q => q.alive).length <= 2 ? spare >= 0 && g.players.some(q => q.alive && q.i !== p.i && stepsTo(p.pos, q.pos) <= 12) : spare >= 10000 && mafiaWorth(g, p))) buyCard(g, p.i, o.c);
       } else {
         const r = L === 1 ? 1.4 : 1;   // snadná kupuje později
         if (def.kind && own(def.kind) >= 6 && spare > 20000 * r) buyCard(g, p.i, o.c);
@@ -1078,6 +1092,7 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
     if (g.phase === 'buy') {
       const t = T[g.offer];
       const want = price => { const spare = p.cash - price; if (spare < 0) return false;
+        if (L >= 3 && g.cards.mafia == null && g.players.filter(q => q.alive).length <= 2 && p.cash >= CARDS.mafia.price * 0.4 && spare < CARDS.mafia.price) return false;
         if (L >= 3) return spare >= 3000 || buyValue(g, p.i, g.offer) > price * 1.2;
         return spare >= (L === 2 ? 3000 : 5000); };
       // kvíz: počítač odpovídá správně podle obtížnosti (lehká 40 %, střední 60 %, těžká 80 %)
