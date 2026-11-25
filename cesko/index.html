@@ -280,6 +280,8 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
 .pawn{transition:transform .16s ease-out}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 .hero h1 .czflag{display:inline-block;width:54px;height:36px;margin:0 14px;vertical-align:2px;border-radius:2px;box-shadow:0 2px 5px rgba(0,0,0,.35)}
+.hero h1{white-space:nowrap}
+@media (max-width:520px){.hero h1 .czflag{width:36px;height:24px;margin:0 8px}}
 .inset{fill:#f7f4ec;stroke:#2b2f2d;stroke-width:3;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25))}
 .okr{fill:none;stroke:rgba(60,60,60,.28);stroke-width:1.2;stroke-dasharray:5 5}.toll{fill:none;stroke:#4a4a4a;stroke-width:4;stroke-dasharray:10 7}.rwhite{stroke:#fff}.tollbg{fill:none;stroke:rgba(255,255,255,.85);stroke-width:9}.tlab{fill:#3d3d3d;stroke:#fff;stroke-width:2}.tlabt{fill:#fff;font:700 15px system-ui,sans-serif;text-anchor:middle}
 .backmap{display:inline-block;margin-top:8px;font-family:var(--f-ui);font-size:15px;letter-spacing:.08em;color:#cdbf9c;text-decoration:none;border:1px solid rgba(205,191,156,.5);border-radius:8px;padding:3px 10px}.backmap:hover{color:#fff;border-color:#fff}
@@ -1229,7 +1231,8 @@ function drawMap(){
     const C=[[n.x+r,n.y-hh/2,"start"],[n.x-r-w,n.y-hh/2,"end"],[n.x-w/2,n.y-r-hh,"middle"],[n.x-w/2,n.y+r,"middle"]];
     const ib=(D.insets||[]).find(q=>q.n===n.s);
     const cand=C.map(([x,y,a],k)=>{const b=[x,y,x+w,y+hh];if(ib&&a==="middle"){const dx=Math.max(ib.x+6-b[0],0)-Math.max(b[2]-(ib.x+ib.w-6),0);b[0]+=dx;b[2]+=dx;}
-      let pen=k*5;if(ib&&(b[0]<ib.x+6||b[2]>ib.x+ib.w-6||b[1]<ib.y+(ib.y<100?44:6)||b[3]>ib.y+ib.h-6))pen+=1e6;return {b,a,pen};});
+      let pen=k*5;if(n.n==="Praha"&&k!==2)pen+=1e6;   // Praha: nápis nad políčkem
+      if(ib&&(b[0]<ib.x+6||b[2]>ib.x+ib.w-6||b[1]<ib.y+(ib.y<100?44:6)||b[3]>ib.y+ib.h-6))pen+=1e6;return {b,a,pen};});
     LB.push({name,big,cand,cur:-1});});
   const fixed=boxes.slice();
   const score=(L,c)=>{let s=c.pen;fixed.forEach(o=>s+=ov(c.b,o));LB.forEach(M=>{if(M!==L&&M.cur>=0)s+=ov(c.b,M.cand[M.cur].b);});return s;};
