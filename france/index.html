@@ -708,7 +708,10 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
       const ro = regionOwner(g, t.s);
       if (ro >= 0 && ro !== p.i) pay(g, p.i, ro, tollAmt(g, ro), `mýto – zastavení v regionu ${t.s}`);
     }
-    if (t.t === 'B' && i === BBI && p.alive && janoTargets(g, p).length) { g.phase = 'janosik'; g.jano = null; return; }
+    if (t.t === 'B' && i === BBI && p.alive) {   // Jánošík: hrát lze i bez hotovosti, prohra se případně řeší jako dluh
+      if (janoTargets(g, p).length) { g.phase = 'janosik'; g.jano = null; return; }
+      log(g, `Šéfkuchař: ${p.name} nemá políčko, kterému by mohl udělit hvězdu.`);
+    }
     finishTurnState(g);
   }
   // Hvězda šéfkuchaře: duel 3 kostkami se šéfkuchařem; výhra = hvězda na vlastní políčko (max 3, Stop ×2/×3/×4)
@@ -1178,10 +1181,10 @@ const pc=p=>PCOL[p.color];
 // figurka z Immigrants
 const PAWN_D="M0,-26 C9,-26 13,-19 13,-12 C13,-4 6,1 6,6 L9,13 L-9,13 L-6,6 C-6,1 -13,-4 -13,-12 C-13,-19 -9,-26 0,-26 Z";
 function pawnSVG(color,size,on){return `<svg class="pawnic" viewBox="-16 -29 32 46" width="${Math.round(size*32/46)}" height="${size}" aria-hidden="true"><ellipse cx="0" cy="14" rx="13" ry="3.5" fill="rgba(0,0,0,.3)"/><path d="${PAWN_D}" fill="${PCOL[color]||color}" stroke="${on?"#ffd66b":"#1d1d1f"}" stroke-width="${on?3:2}"/></svg>`;}
-const ICON={G:"symB-G",W:"symB-W",R:"symB-R",A:"sym-plane",P:"mk-gen",K:"symB-K"};
+const ICON={G:"symB-G",W:"symB-W",R:"symB-R",A:"sym-plane",P:"sym-ship",K:"symB-K"};
 const KN={G:"pochutiny",W:"pamětihodnosti",R:"vína",A:"letiště",P:"přístavy",K:"départementy"};
 const icon=k=>`<svg viewBox="-12 -12 24 24" width="16" height="16" aria-hidden="true"><use href="#${ICON[k]}" x="-12" y="-12" width="24" height="24"/></svg>`;
-function counts(i){const c={G:0,W:0,R:0,P:0};for(const k in g.own)if(g.own[k]===i&&c[T[k].t]!=null)c[T[k].t]++;c.K=E.okresCount(g,i);return c;}
+function counts(i){const c={G:0,W:0,R:0,A:0,P:0};for(const k in g.own)if(g.own[k]===i&&c[T[k].t]!=null)c[T[k].t]++;return c;}
 const cardsOf=i=>Object.keys(g.cards).filter(c=>g.cards[c]===i);
 
 // ---------- mapa ----------
@@ -1405,7 +1408,7 @@ function walletEl(p){const b=h("div",{class:"bills"});billsFor(Math.max(0,p.cash
 function header(p,title,sub){return h("div",{class:"ph",style:`--pc:${TRAILCOL[p.color]||pc(p)}`},h("span",{html:pawnSVG(p.color,44,true)}),h("div",null,h("h2",null,title),sub?h("div",{class:"sub"},sub):null));}
 function ownTable(){
   const t=h("table",{class:"otab"});
-  t.appendChild(h("tr",null,h("th",null,""),["G","W","R","P","K"].map(k=>h("th",{title:KN[k],html:icon(k)})),h("th",{title:"Speciální karty"},"Karty"),h("th",null,"Hotovost")));
+  t.appendChild(h("tr",null,h("th",null,""),["G","W","R","A","P"].map(k=>h("th",{title:KN[k],html:icon(k)})),h("th",{title:"Speciální karty"},"Karty"),h("th",null,"Hotovost")));
   g.players.forEach(p=>{const n=counts(p.i),cs=cardsOf(p.i);
     t.appendChild(h("tr",{class:(p.i===g.cur?"cur":"")+(p.alive?"":" dead")},
       h("td",null,h("span",{html:pawnSVG(p.color,18),style:"display:inline-block;vertical-align:-3px;margin-right:4px"}),p.name),

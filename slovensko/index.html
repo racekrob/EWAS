@@ -1185,7 +1185,7 @@ function pawnSVG(color,size,on){return `<svg class="pawnic" viewBox="-16 -29 32 
 const ICON={G:"symB-G",W:"symB-W",R:"symB-R",A:"sym-plane",P:"mk-gen",K:"symB-K"};
 const KN={G:"pochutiny",W:"pamětihodnosti",R:"nápoje",A:"letiště",P:"turistické značky",K:"okresy"};
 const icon=k=>`<svg viewBox="-12 -12 24 24" width="16" height="16" aria-hidden="true"><use href="#${ICON[k]}" x="-12" y="-12" width="24" height="24"/></svg>`;
-function counts(i){const c={G:0,W:0,R:0,P:0};for(const k in g.own)if(g.own[k]===i&&c[T[k].t]!=null)c[T[k].t]++;c.K=E.okresCount(g,i);return c;}
+function counts(i){const c={G:0,W:0,R:0,P:0};for(const k in g.own)if(g.own[k]===i&&c[T[k].t]!=null)c[T[k].t]++;return c;}
 const cardsOf=i=>Object.keys(g.cards).filter(c=>g.cards[c]===i);
 
 // ---------- mapa ----------
@@ -1406,7 +1406,7 @@ function walletEl(p){const b=h("div",{class:"bills"});billsFor(Math.max(0,p.cash
 function header(p,title,sub){return h("div",{class:"ph",style:`--pc:${TRAILCOL[p.color]||pc(p)}`},h("span",{html:pawnSVG(p.color,44,true)}),h("div",null,h("h2",null,title),sub?h("div",{class:"sub"},sub):null));}
 function ownTable(){
   const t=h("table",{class:"otab"});
-  t.appendChild(h("tr",null,h("th",null,""),["G","W","R","P","K"].map(k=>h("th",{title:KN[k],html:icon(k)})),h("th",{title:"Speciální karty"},"Karty"),h("th",null,"Hotovost")));
+  t.appendChild(h("tr",null,h("th",null,""),["G","W","R","P"].map(k=>h("th",{title:KN[k],html:icon(k)})),h("th",{title:"Speciální karty"},"Karty"),h("th",null,"Hotovost")));
   g.players.forEach(p=>{const n=counts(p.i),cs=cardsOf(p.i);
     t.appendChild(h("tr",{class:(p.i===g.cur?"cur":"")+(p.alive?"":" dead")},
       h("td",null,h("span",{html:pawnSVG(p.color,18),style:"display:inline-block;vertical-align:-3px;margin-right:4px"}),p.name),
