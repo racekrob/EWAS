@@ -828,6 +828,7 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
   // výplata v bance: komodity × násobek druhu + kluby
   function bankPayout(g, i, bank) {
     let base = 0, n = 0, mult = false;
+    if (T[bank].n === BBN) return { base: 0, n: 0, mult: false, clubs: [], sum: 0 };   // Banská Bystrica nic nevyplácí
     if (T[bank].n === 'Banská Bystrica') {             // Praha vyplácí za každý vlastněný okres
       n = okresCount(g, i); const m = okresMult(g, i);
       return { base: n * PRAHA_PAY * m, n, mult: m > 1, clubs: [], sum: n * PRAHA_PAY * m };
@@ -1523,7 +1524,7 @@ function cardView(i){
   if(BAND[t.t]){const dl=h("dl",{style:`background:${BAND[t.t]}`});c.appendChild(dl);
     const row=(a,b)=>{dl.appendChild(h("dt",null,a));dl.appendChild(h("dd",null,b));};
     row("Cena",fmt(t.price));
-    if("WGR".includes(t.t)){row("Výplata "+E.BANK_OF[t.t],fmt(t.pay));row("Výplata B. Bystrica",fmt(D.prahaPay||1000));row("Stop",fmt(t.stop));if(D.passFee)row("Průjezd",fmt(D.passFee));if(t.tollOnly)row("Přístup","placená zkratka");}
+    if("WGR".includes(t.t)){row("Výplata "+E.BANK_OF[t.t],fmt(t.pay));row("Stop",fmt(t.stop));if(D.passFee)row("Průjezd",fmt(D.passFee));if(t.tollOnly)row("Přístup","placená zkratka");}
     else row("Stop","2 000 € × počet");
     if(g&&g.own[i]!=null)row("Majitel",g.players[g.own[i]].name);}
   return c;
@@ -1536,9 +1537,10 @@ function sheet(title,build,onClose){
   document.body.appendChild(bg);build(body,close);return{close,body};
 }
 function confirmBox(text,yes,fn){sheet("Potvrzení",(b,close)=>{b.append(h("p",{style:"font-size:16px;margin:0"},text),h("div",{class:"row"},h("button",{class:"btn red",onclick:()=>{close();fn();}},yes),h("button",{class:"btn ghost",onclick:close},"Zpět")));});}
-const BANKKIND={"Košice":"pochutiny","Žilina":"nápoje","Bratislava":"pamětihodnosti","Banská Bystrica":"1 000 € za každý vlastněný okres"};
+const BANKKIND={"Košice":"pochutiny","Žilina":"nápoje","Bratislava":"pamětihodnosti","Banská Bystrica":"nic – hraje se s Jánošíkem"};
 function showTile(i){
   const t=T[i];
+  if(t.t==="B"&&t.n==="Banská Bystrica"){sheet("Banská Bystrica – Jánošík",b=>b.append(h("p",{class:"note"},"V Banské Bystrici se nic nevyplácí. Dojedete sem jen vlakem (zdarma) a můžete tu vyzvat hráče s větší hotovostí na souboj kostkami o jedno jeho políčko.")));return;}
   if(t.t==="B"){sheet(`Banka ${t.n}`,b=>{
     b.append(h("p",{class:"note"},`V bance ${t.n} se vyplácí ${BANKKIND[t.n]}. Takto by zde inkasoval každý hráč:`));
     const tb=h("table",{class:"otab"});tb.appendChild(h("tr",null,h("th",null,""),h("th",{html:(t.n==="Banská Bystrica"?"Okresy":icon({"Košice":"G","Žilina":"R","Bratislava":"W"}[t.n]))}),h("th",null,"Výplata")));
