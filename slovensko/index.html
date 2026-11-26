@@ -440,7 +440,7 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
   const QZ = root.ITALIA_QUIZ || {};
   const T = D.tiles, ADJ = D.adj, LINKS = D.links, ROUTES = D.routes, REG = D.regions;
   const ISLAND = { tatry: 1, raj: 1 };
-  const TRAIN_FARE = 12000, BBN = 'Banská Bystrica', BBI = D.banks[BBN];
+  const TRAIN_FARE = 0, BBN = 'Banská Bystrica', BBI = D.banks[BBN];
   const BANK_OF = { W: 'Bratislava', G: 'Košice', R: 'Žilina' };
   const TOLL = D.tollFee || 1000, PRAHA_PAY = D.prahaPay || 1000;
   const RK = (a, b) => a < b ? a + '-' + b : b + '-' + a;
@@ -472,8 +472,6 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
     tm_yellow: { name: 'Mapa žlutých turistických tras', price: 50000, trail: 'yellow', desc: 'Cesta po žluté trase do parku trvá 1 krok místo 5. Na cizí žluté značce nemusíte do parku. Kdo zastaví na žluté trase, platí vám 2 000 €.' },
     tm_red: { name: 'Mapa červených turistických tras', price: 50000, trail: 'red', desc: 'Cesta po červené trase do parku trvá 1 krok místo 5. Na cizí červené značce nemusíte do parku. Kdo zastaví na červené trase, platí vám 2 000 €.' },
     tm_green: { name: 'Mapa zelených turistických tras', price: 50000, trail: 'green', desc: 'Cesta po zelené trase do parku trvá 1 krok místo 5. Na cizí zelené značce nemusíte do parku. Kdo zastaví na zelené trase, platí vám 2 000 €.' },
-    prebornik: { name: 'Okresní přeborník', price: 75000, desc: 'Zdvojnásobí výplatu za okresy v Banské Bystrici.' },
-    treni: { name: 'ZSSK', price: 200000, desc: 'Vlakem do Banské Bystrice a zpět jezdíte zdarma, jízdenky ostatních (12 000 €) platí vám.' },
     pruvodce: { name: 'Průvodce', price: 50000, kind: 'W', desc: 'Zdvojnásobí Stop na vašich pamětihodnostech i jejich výplatu v bance Bratislava.' },
     somelier: { name: 'Sommelier', price: 50000, kind: 'R', desc: 'Zdvojnásobí Stop na vašich nápojích i jejich výplatu v bance Žilina.' },
     labuznik: { name: 'Labužník', price: 50000, kind: 'G', desc: 'Zdvojnásobí Stop na vašich pochutinách i jejich výplatu v bance Košice.' },
@@ -590,8 +588,8 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
     if (isPort && first && p.forceLink && links.length) return links;
     if (p.island && p.island.done && pos === p.island.entry && p.island.cnt > 0 && links.length) return links;
     if (t.t === 'B' && first && (!p.viaTrain || pos === BBI)) {
-      if (pos === BBI) Object.keys(ARM).map(Number).filter(b => b !== BBI).forEach(b => res.push({ to: ARM[b][1], k: 'train', board: { from: pos, path: [ARM[b][0], b] }, label: `Vlak do ${T[b].n} (${fmt(TRAIN_FARE)})` }));
-      else if (ARM[pos]) res.push({ to: ARM[pos][0], k: 'train', board: { from: pos, path: [ARM[pos][1], BBI] }, label: `Vlak do Banské Bystrice (${fmt(TRAIN_FARE)})` });
+      if (pos === BBI) Object.keys(ARM).map(Number).filter(b => b !== BBI).forEach(b => res.push({ to: ARM[b][1], k: 'train', board: { from: pos, path: [ARM[b][0], b] }, label: `Vlak do ${T[b].n} (zdarma)` }));
+      else if (ARM[pos]) res.push({ to: ARM[pos][0], k: 'train', board: { from: pos, path: [ARM[pos][1], BBI] }, label: `Vlak do Banské Bystrice (zdarma)` });
       const owner = g.cards.treni;
       res = res.filter(o => !o.board || owner === p.i || p.cash >= TRAIN_FARE || pos === BBI);
       if (owner === p.i) res.forEach(o => { if (o.board) o.label = o.label.replace(/\(.*\)/, '(zdarma)'); });
@@ -621,7 +619,7 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
     const from = p.pos;
     if (o.board) {
       const owner = g.cards.treni;
-      if (owner !== p.i) pay(g, p.i, owner != null ? owner : -1, TRAIN_FARE, 'jízdenka na vlak');
+      if (owner !== p.i && TRAIN_FARE) pay(g, p.i, owner != null ? owner : -1, TRAIN_FARE, 'jízdenka na vlak');
       p.train = { from: o.board.from, path: o.board.path.slice() };
     } else if (p.train) {
       if (o.trainTo != null) { p.train.path = [ARM[o.trainTo][0], o.trainTo]; log(g, `${p.name} jede vlakem do ${T[o.trainTo].n}.`); }
@@ -678,7 +676,7 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
     if (t.t === 'B') {
       const hist = p.bankHist || [], recent = !payBank(p, i);
       p.bankHist = hist.concat(i).slice(-3);
-      const r = recent ? { base: 0, clubs: [], sum: 1, skip: true } : bankPayout(g, p.i, i);
+      const r = i === BBI ? { base: 0, clubs: [], sum: 1 } : recent ? { base: 0, clubs: [], sum: 1, skip: true } : bankPayout(g, p.i, i);
       if (r.skip) log(g, `${p.name} byl v bance ${t.n} naposledy – výplata až po návštěvě jiné banky (Banská Bystrica se nepočítá).`);
       if (r.base) pay(g, -1, p.i, r.base, `výplata v bance ${t.n}` + (r.mult ? ' (vč. násobků)' : ''));
       r.clubs.forEach(c => pay(g, -1, p.i, CLUB_BONUS, CARDS[c].name));
@@ -710,36 +708,38 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
       const ro = regionOwner(g, t.s);
       if (ro >= 0 && ro !== p.i) pay(g, p.i, ro, tollAmt(g, ro), `mýto – zastavení v kraji ${t.s}`);
     }
-    if (t.t === 'B' && i === BBI && p.alive && p.cash >= JANO_FEE && janoFree(g).length) { g.phase = 'janosik'; g.jano = null; return; }
+    if (t.t === 'B' && i === BBI && p.alive && p.cash >= JANO_FEE && janoTargets(g, p).length) { g.phase = 'janosik'; g.jano = null; return; }
     finishTurnState(g);
   }
-  // Jánošík: za 2 000 € hod 3 kostkami proti Jánošíkovi, vyšší součet vyhrává; výhra = volné políčko zdarma
+  // Jánošík bohatým bere a chudým dává: duel 3 kostkami s bohatším hráčem o jeho políčko
   const JANO_FEE = 2000;
-  function janoFree(g) { return T.map((t, i) => i).filter(i => isProp(i) && g.own[i] == null); }
-  function janosik(g, play) {
+  function worth(g, i) { let w = g.players[i].cash; for (const k in g.own) if (g.own[k] === i) w += T[k].price || 0; return w; }
+  function janoTargets(g, p) {
+    const me = worth(g, p.i);
+    return Object.keys(g.own).map(Number).filter(k => { const o = g.own[k]; return o != null && o !== p.i && g.players[o].alive && isProp(k) && worth(g, o) > me; });
+  }
+  function janoEV(g, i) { const tg = janoTargets(g, g.players[i]); if (!tg.length) return 0; return Math.max(0, 0.5 * Math.max(...tg.map(k => T[k].price || 0)) - 0.5 * JANO_FEE); }
+  function janosik(g, play, target) {
     if (g.phase !== 'janosik' || g.jano) return false;
     const p = cur(g);
-    if (!play) { log(g, `${p.name} s Jánošíkem nehraje.`); finishTurnState(g); return true; }
-    pay(g, p.i, -1, JANO_FEE, 'hra s Jánošíkem');
+    if (!play || target == null) { log(g, `${p.name} se s Jánošíkem na nikoho nevydává.`); finishTurnState(g); return true; }
+    if (!janoTargets(g, p).includes(target)) return false;
+    const o = g.own[target], q = g.players[o];
     let a, b, ties = 0; const sm = x => x[0] + x[1] + x[2];
     for (;;) { a = [rnd(6), rnd(6), rnd(6)]; b = [rnd(6), rnd(6), rnd(6)]; if (sm(a) !== sm(b)) break; ties++; }
     const win = sm(a) > sm(b);
-    g.jano = { me: a, jan: b, win, ties };
-    log(g, `${p.name} hází ${a.join(' + ')} = ${sm(a)}, Jánošík ${b.join(' + ')} = ${sm(b)}${ties ? ` (po ${ties}× remíze)` : ''} – ${win ? 'vyhrává! Vybírá si volné políčko zdarma.' : 'prohrává.'}`);
+    log(g, `Jánošík: ${p.name} vyzývá ${q.name} o ${T[target].n} – ${a.join('+')} = ${sm(a)} proti ${b.join('+')} = ${sm(b)}${ties ? ` (po ${ties}× remíze)` : ''}.`);
+    if (win) {
+      g.own[target] = p.i;
+      log(g, `${p.name} bere ${q.name} políčko ${T[target].n}.`);
+      if (T[target].s && regionOwner(g, T[target].s) === p.i && 'WGR'.includes(T[target].t)) log(g, `${p.name} vlastní celý kraj ${T[target].s} a vybírá v něm mýto.`);
+    } else pay(g, p.i, o, JANO_FEE, 'prohraný duel u Jánošíka');
+    g.jano = { me: a, jan: b, win, ties, target, opp: o };
     return true;
   }
-  function janoPick(g, i) {
+  function janoPick(g) {
     if (g.phase !== 'janosik' || !g.jano) return false;
-    const p = cur(g);
-    if (g.jano.win) {
-      if (i == null || !isProp(i) || g.own[i] != null) return false;
-      g.own[i] = p.i;
-      log(g, `${p.name} získává od Jánošíka ${T[i].n} zdarma.`);
-      if (T[i].s && regionOwner(g, T[i].s) === p.i && 'WGR'.includes(T[i].t)) log(g, `${p.name} vlastní celý kraj ${T[i].s} a vybírá v něm mýto.`);
-    }
-    g.jano = null;
-    finishTurnState(g);
-    return true;
+    g.jano = null; finishTurnState(g); return true;
   }
   // kvíz: správná odpověď = koupě za polovinu
   const AI_QUIZ = [0, 0.4, 0.6, 0.8];
@@ -1055,7 +1055,7 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
     if (pos >= 0 && T[pos].loop === 'main') {
       const pl = P(g, i); let pot = 0;
       for (const b of BANKS_I) { if (!payBank(pl, b)) continue; const d = DISTB[b][pos]; if (d >= 1e9) continue;
-        pot = Math.max(pot, bankPayout(g, i, b).sum / (1 + d / 6)); }
+        pot = Math.max(pot, (b === BBI ? janoEV(g, i) : bankPayout(g, i, b).sum) / (1 + d / 6)); }
       if (deep) v += 0.45 * pot;
     }
     return v;
@@ -1140,16 +1140,15 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
       return;
     }
     if (g.phase === 'janosik') {
-      if (!g.jano) return janosik(g, p.cash >= (L >= 2 ? 15000 : 30000) && Math.random() < (L >= 2 ? 0.9 : 0.5));
-      if (!g.jano.win) return janoPick(g, null);
-      const fr = janoFree(g); let bi = fr[0], bv = -1e9;
-      fr.forEach(i => { const v = (L >= 2 ? buyValue(g, p.i, i) : T[i].price) + Math.random(); if (v > bv) { bv = v; bi = i; } });
-      return janoPick(g, bi);
+      if (g.jano) return janoPick(g);
+      const tg = janoTargets(g, p); let bi = null, bv = -1e9;
+      tg.forEach(k => { const v = (L >= 2 ? buyValue(g, p.i, k) : T[k].price) + Math.random(); if (v > bv) { bv = v; bi = k; } });
+      return janosik(g, bi != null && (L >= 2 || Math.random() < 0.7), bi);
     }
     if (g.phase === 'end') return endTurn(g);
   }
 
-  const E = { D, T, CARDS, COLORS, TRAIN_FARE, BANK_OF, DICE_FEE, PORT_USE, LINK_STOP, CLUB_BONUS, CLUB_FEE, kindMult, stopMult, kindCount, okresCount, okresMult, fmt, newGame, janosik, janoPick, janoFree, JANO_FEE, quizStart, quizAnswer, offerPrice, halfPrice, quizPenalty, QZ, placeClub, clubValid, clubAt, clubTiles, pickBank, roll, options, choose, buy, cardOptions, buyCard,
+  const E = { D, T, CARDS, COLORS, TRAIN_FARE, BANK_OF, DICE_FEE, PORT_USE, LINK_STOP, CLUB_BONUS, CLUB_FEE, kindMult, stopMult, kindCount, okresCount, okresMult, fmt, newGame, janosik, janoPick, janoTargets, JANO_FEE, quizStart, quizAnswer, offerPrice, halfPrice, quizPenalty, QZ, placeClub, clubValid, clubAt, clubTiles, pickBank, roll, options, choose, buy, cardOptions, buyCard,
     sellables, sell, bankrupt, endTurn, aiAct, regionOwner, worth, isDouble, hasCard, bankPayout, tilesOf,
     tradeValid, doTrade, assetValue, evalTrade, counterTrade, tradeBlocked, blockTrade };
   if (typeof module !== 'undefined') module.exports = E; else root.ITALIA = E;
@@ -1177,7 +1176,7 @@ const pc=p=>PCOL[p.color];
 const PAWN_D="M0,-26 C9,-26 13,-19 13,-12 C13,-4 6,1 6,6 L9,13 L-9,13 L-6,6 C-6,1 -13,-4 -13,-12 C-13,-19 -9,-26 0,-26 Z";
 function pawnSVG(color,size,on){return `<svg class="pawnic" viewBox="-16 -29 32 46" width="${Math.round(size*32/46)}" height="${size}" aria-hidden="true"><ellipse cx="0" cy="14" rx="13" ry="3.5" fill="rgba(0,0,0,.3)"/><path d="${PAWN_D}" fill="${PCOL[color]||color}" stroke="${on?"#ffd66b":"#1d1d1f"}" stroke-width="${on?3:2}"/></svg>`;}
 const ICON={G:"symB-G",W:"symB-W",R:"symB-R",A:"sym-plane",P:"mk-gen",K:"symB-K"};
-const KN={G:"pochutiny",W:"pamětihodnosti",R:"nápoje",A:"letiště",P:"turistické značky",K:"okresy (výplata v Banské Bystrici)"};
+const KN={G:"pochutiny",W:"pamětihodnosti",R:"nápoje",A:"letiště",P:"turistické značky",K:"okresy"};
 const icon=k=>`<svg viewBox="-12 -12 24 24" width="16" height="16" aria-hidden="true"><use href="#${ICON[k]}" x="-12" y="-12" width="24" height="24"/></svg>`;
 function counts(i){const c={G:0,W:0,R:0,P:0};for(const k in g.own)if(g.own[k]===i&&c[T[k].t]!=null)c[T[k].t]++;c.K=E.okresCount(g,i);return c;}
 const cardsOf=i=>Object.keys(g.cards).filter(c=>g.cards[c]===i);
@@ -1275,7 +1274,7 @@ function drawMap(){
       const sc=boxes.reduce((a,b)=>a+ov(bx,b),0);if(!best||sc<best.sc-0.5)best={sc,f,o,bx};}
     const {f,o,bx}=best;boxes.push(bx);
     el("path",{id:"tl"+i,d:`M${x1+nx*o},${y1+ny*o} L${x2+nx*o},${y2+ny*o}`,fill:"none"},gt);
-    const t=el("text",{class:"tprice"},gl);const tp=el("textPath",{href:"#tl"+i,startOffset:(f*100)+"%","text-anchor":"middle"},t);tp.textContent=fmt(E.TRAIN_FARE);});
+    const t=el("text",{class:"tprice"},gl);const tp=el("textPath",{href:"#tl"+i,startOffset:(f*100)+"%","text-anchor":"middle"},t);tp.textContent="zdarma";});
   const LB=[];T.forEach(n=>{
     if(n.t==="ship"||n.t==="plane"||n.t==="mark")return;
     const big=n.t==="B",name=n.t==="train"?n.n:n.n.replace(/^(Přístav|Letiště) /,"").replace(n.t==="P"&&(D.insets||[]).some(q=>q.n===n.s)?/^\S+ značka – /:/^$/,""),fs=big?28:14,w=name.length*(big?16:7.4),hh=fs+2,r=big?36:25;
@@ -1441,7 +1440,7 @@ function renderPanel(){
     tail(P);return;}
   if(ON&&ON.wait){P.append(header(p,`Na tahu: ${p.name}`,"Odesílám tah…"),h("div",{class:"thinking"},h("div",{class:"spinner"}),h("span",null,"Čekám na potvrzení od zakladatele hry…")));tail(P);return;}
   if(g.phase==="pick"){P.append(header(p,`${p.name}: startovní banka`,"Pořadí výběru podle úvodního hodu"),
-    h("div",{class:"optlist"},Object.entries(D.banks).map(([n,i],k)=>h("button",{onclick:()=>act(()=>E.pickBank(g,i))},h("span",{class:"k"},k+1),h("span",null,n),h("span",{class:"cost free"},"výplata "+{"Košice":"pochutin","Žilina":"nápojů","Bratislava":"pamětihodností","Banská Bystrica":"za okresy"}[n])))));tail(P);return;}
+    h("div",{class:"optlist"},Object.entries(D.banks).map(([n,i],k)=>h("button",{onclick:()=>act(()=>E.pickBank(g,i))},h("span",{class:"k"},k+1),h("span",null,n),h("span",{class:"cost free"},"výplata "+{"Košice":"pochutin","Žilina":"nápojů","Bratislava":"pamětihodností","Banská Bystrica":"Jánošík"}[n])))));tail(P);return;}
   if(g.phase==="turn"){
     P.append(header(p,`Na tahu: ${p.name}`,sub(p)),walletEl(p));
     if(p.forceLink)P.append(h("p",{class:"err"},"Stojíte na cizí turistické značce – tento tah musíte do národního parku."));
@@ -1474,12 +1473,14 @@ function renderPanel(){
   if(g.phase==="janosik"){
     const jz=g.jano,sm=x=>x[0]+x[1]+x[2];
     P.append(header(p,"Banská Bystrica – Jánošík",`Hotovost ${fmt(p.cash)}`));
-    if(!jz){P.append(h("p",{class:"note"},`Zahrajete si s Jánošíkem? Zaplatíte ${fmt(E.JANO_FEE)} a oba hodíte 3 kostkami. Hodíte-li víc než Jánošík, vyberete si libovolné volné políčko zdarma. Při remíze se hází znovu.`),
-      h("div",{class:"row"},h("button",{class:"btn red big",onclick:()=>act(()=>E.janosik(g,true))},`Hrát · ${fmt(E.JANO_FEE)}`),h("button",{class:"btn ghost big",onclick:()=>act(()=>E.janosik(g,false))},"Nehrát")));tail(P);return;}
-    P.append(h("div",{class:"sec"},`Vy: ${sm(jz.me)}`),h("div",{class:"dice"},jz.me.map(v=>dieEl(v))),h("div",{class:"sec"},`Jánošík: ${sm(jz.jan)}`),h("div",{class:"dice"},jz.jan.map(v=>dieEl(v))));
-    if(!jz.win){P.append(h("p",{class:"err"},"Jánošík vyhrál – 2 000 € propadá."),h("button",{class:"btn red big",onclick:()=>act(()=>E.janoPick(g,null))},"Pokračovat"));tail(P);return;}
-    P.append(h("p",{class:"note"},"Vyhráli jste! Vyberte si volné políčko zdarma:"),
-      h("div",{class:"optlist"},E.janoFree(g).sort((a,b)=>T[b].price-T[a].price||T[a].n.localeCompare(T[b].n)).map(i=>h("button",{onclick:()=>act(()=>E.janoPick(g,i))},h("span",null,T[i].n+(T[i].okres&&T[i].t!=="P"?` (${T[i].okres})`:T[i].s&&T[i].loop!=="main"?` (${T[i].s})`:"")),h("span",{class:"cost free"},fmt(T[i].price))))));
+    if(!jz){const tg=E.janoTargets(g,p).sort((a,b)=>T[b].price-T[a].price||T[a].n.localeCompare(T[b].n));
+      P.append(h("p",{class:"note"},`Jánošík bohatým bere a chudým dává. Vyzvěte bohatšího hráče o jeho políčko: oba hodíte 3 kostkami, při remíze se hází znovu. Vyhrajete-li, políčko je vaše. Prohrajete-li, zaplatíte soupeři ${fmt(E.JANO_FEE)}.`),
+        h("div",{class:"optlist"},tg.map(i=>h("button",{onclick:()=>act(()=>E.janosik(g,true,i))},h("span",null,`${T[i].n} – ${g.players[g.own[i]].name}`),h("span",{class:"cost"},fmt(T[i].price))))),
+        h("button",{class:"btn ghost big",onclick:()=>act(()=>E.janosik(g,false))},"Nikoho nevyzvat"));tail(P);return;}
+    const q=g.players[jz.opp];
+    P.append(h("div",{class:"sec"},`${p.name}: ${sm(jz.me)}`),h("div",{class:"dice"},jz.me.map(v=>dieEl(v))),h("div",{class:"sec"},`${q.name}: ${sm(jz.jan)}`),h("div",{class:"dice"},jz.jan.map(v=>dieEl(v))),
+      h("p",{class:jz.win?"note":"err"},jz.win?`Vyhráli jste – ${T[jz.target].n} je teď vaše.`:`Prohráli jste – platíte ${q.name} ${fmt(E.JANO_FEE)}.`),
+      h("button",{class:"btn red big",onclick:()=>act(()=>E.janoPick(g))},"Pokračovat"));
     tail(P);return;}
   if(g.phase==="debt"){
     P.append(header(p,`${p.name} dluží ${fmt(-p.cash)}`,"Prodejte majetek bance za nákupní cenu, nebo vyhlaste bankrot."),
@@ -1671,21 +1672,20 @@ function openRules(){sheet("Pravidla",b=>b.appendChild(h("div",{class:"rules",ht
 <li>Hráči hodí o pořadí; nejvyšší hod si první vybírá startovní banku (Bratislava, Žilina, Košice, Banská Bystrica).</li>
 <li>Standardně se hází <b>2 kostkami zdarma</b>. Před hodem si lze zvolit <b>1 kostku za 5 000 €</b> nebo <b>3 kostky za 10 000 €</b>. Kdo hodí dvojici, hází znovu.</li>
 <li><b>Mapa okresů:</b> každý okres má jedno políčko – <b>pochutinu</b>, <b>pamětihodnost</b> nebo <b>nápoj</b> (pivo, víno nebo pálenku – symbol půllitru) (Bratislava a Košice jsou každé jedním městem). Banky Bratislava, Žilina a Košice spojují <b>4 barevné hlavní trasy</b>: <b>modrá</b> (Bratislava – střed Slovenska – Žilina), <b>zelená</b> (Bratislava – Považí – Žilina), <b>červená</b> (Žilina – sever a východ – Košice) a <b>žlutá</b> (Košice – Spiš a jih – Bratislava). Každá trasa má 16–18 okresů a 2 turistické značky své barvy. Zkratky na Slovensku nejsou.</li>
-<li><b>Banská Bystrica</b> leží mimo trasy – dostanete se do ní jen <b>vlakem</b> z Bratislavy, Žiliny nebo Košic. Jedna cesta stojí ${fmt(E.TRAIN_FARE)} a vede přes 2 zastávky. Z Banské Bystrice se odjíždí zase jen vlakem do jedné ze tří bank (jízda tam a zpět tedy stojí ${fmt(2*E.TRAIN_FARE)}). Kdo do banky přijel vlakem, nemůže z ní hned vlakem odjet zpět – kromě Banské Bystrice.</li>
-<li><b>Jánošík:</b> v Banské Bystrici si můžete zahrát s Jánošíkem. Zaplatíte ${fmt(E.JANO_FEE)} a oba hodíte 3 kostkami. Hodíte-li víc, vyberete si libovolné volné políčko zdarma (okres, značku nebo políčko v národním parku). Při remíze se hází znovu, při prohře peníze propadají.</li>
+<li><b>Banská Bystrica</b> leží mimo trasy – dostanete se do ní jen <b>vlakem</b> z Bratislavy, Žiliny nebo Košic. Vlak jezdí <b>zdarma</b> přes 2 zastávky; v Banské Bystrici se zastaví a dál se jede vlakem do kterékoli ze tří bank – je to levná spojka mezi bankami. Kdo do banky přijel vlakem, nemůže z ní hned vlakem odjet zpět – kromě Banské Bystrice. Banská Bystrica nic nevyplácí.</li>
+<li><b>Jánošík bohatým bere a chudým dává:</b> v Banské Bystrici můžete vyzvat hráče, který je bohatší než vy (hotovost + cena políček), o jedno jeho políčko. Oba hodíte 3 kostkami, při remíze se hází znovu. Vyhrajete-li, políčko je vaše. Prohrajete-li, zaplatíte soupeři ${fmt(E.JANO_FEE)}.</li>
 <li><b>Jízda</b> vede z banky do banky. Na křižovatce si vyberete směr. V jedné jízdě se nesmíte otočit ani projet stejný úsek dvakrát. Do žádné banky nelze dojet dvakrát po sobě úplně stejnou cestou. V bance figurka vždy zastaví.</li>
 <li><b>Kvíz:</b> před koupí si můžete vzít kvízovou otázku k políčku (možnosti A, B, C). Správná odpověď zlevní koupi na polovinu. Špatná odpověď políčko zdraží podle cenové kategorie: 2 500 € → +500 €, 4 000 € → +1 000 €, 6 000 € → +1 500 € (koupit pak nemusíte). Na každé políčko je ${D.quizN||15} otázek, odpovídá se jen jednou. Kdo má aspoň na polovinu ceny, může zkusit kvíz. Kvíz hrají i počítačoví hráči: lehký odpoví správně asi ve 40 % případů, střední v 60 % a těžký v 80 %.</li>
 <li>Na volném políčku můžete okres koupit. Na cizím políčku platíte majiteli <b>Stop</b>. Za <b>průjezd</b> cizím okresem platíte majiteli ${fmt(D.passFee||0)}.</li>
-<li><b>Výplaty:</b> nápoje v Žilině, pamětihodnosti v Bratislavě, pochutiny v Košicích a v Banské Bystrici ${fmt(D.prahaPay||1000)} za každý vlastněný okres (od 10 okresů dvojnásobek, od 20 okresů čtyřnásobek). Bratislava, Žilina a Košice vyplácejí jen tehdy, když jste mezitím navštívili jinou z těchto tří bank – Banská Bystrica se jako vystřídání nepočítá. <b>Banská Bystrica vyplácí při každé návštěvě, jen ne dvakrát po sobě.</b> Klepnutím na banku zjistíte, kolik by kdo inkasoval.</li>
+<li><b>Výplaty:</b> nápoje v Žilině, pamětihodnosti v Bratislavě, pochutiny v Košicích. Banka vyplácí jen tehdy, když jste mezitím navštívili jinou z těchto tří bank – Banská Bystrica se jako vystřídání nepočítá. Klepnutím na banku zjistíte, kolik by kdo inkasoval.</li>
 <li><b>Sbírka komodit:</b> kdo vlastní 5–9 komodit jednoho druhu, má u nich dvojnásobnou výplatu v bance i poplatek Stop. Od 10 komodit má trojnásobnou výplatu v bance a čtyřnásobný poplatek Stop.</li>
 <li>Kdo vlastní všechny okresy kraje, kraj se podbarví jeho barvou a vybírá mýto 2 000 € za vjezd a 2 000 € za zastavení.</li>
 <li><b>Turistické značky:</b> na mapě Slovenska je 8 značek, na každé trase dvě v její barvě. Červené (Roháče, Belianske Tatry) a zelené (Strážovské vrchy, Vrátna dolina) vedou do <b>Vysokých Tater</b> (výřez nahoře), modré (Nízke Tatry, Muránska planina) a žluté (Slovenský kras, Volovské vrchy) do <b>Slovenského raje</b> (výřez dole). Trasa do parku trvá 5 kroků. Značku lze koupit; Stop na cizí značce je 2 000 € × počet značek majitele, použití cizí značky k odchodu nebo příchodu stojí 2 000 €.</li>
 <li>Kdo zastaví na cizí značce na mapě Slovenska, musí příští tah jít do národního parku. Park se musí obejít aspoň jednou dokola, teprve pak se z něj dá odejít po značce. V každém parku jsou 2 pochutiny, 2 pamětihodnosti a 2 nápoje; celý park se počítá jako kraj.</li>
 <li>Speciální karty kupujete na začátku tahu. <b>Mafii</b> si zapůjčíte v kterékoli bance; vrací se, jakmile přijedete do kterékoli banky. Koho s ní na trase potkáte, vypadá ze hry.</li>
 <li><b>Mapa modrých / žlutých / červených / zelených turistických tras:</b> cesta po trase dané barvy trvá 1 krok místo 5 a na cizí značce té barvy nemusíte do parku. Kdo zastaví na trase dané barvy, platí majiteli mapy 2 000 €.</li>
-<li><b>Okresní přeborník</b> zdvojnásobí výplatu za okresy v Banské Bystrici – navíc k násobku za 10 a 20 okresů.</li>
 <li><b>Labužník / Sommelier / Průvodce</b> zdvojnásobí Stop i výplatu v bance za pochutiny / nápoje / pamětihodnosti – navíc k násobku za sbírku.</li>
-<li><b>Župan</b> zdvojnásobí mýto ve vašich celých krajích. <b>ZSSK</b>: vlakem jezdíte zdarma a jízdenky ostatních platí vám.</li>
+<li><b>Župan</b> zdvojnásobí mýto ve vašich celých krajích.</li>
 <li><b>Labužnický / Vinný / Cestovatelský klub</b> umístíte na své políčko daného druhu. V příslušné bance dostáváte navíc 15 000 €. Kdo na políčku klubu zastaví, dostane od vás 1 000 € za každou svou komoditu daného druhu.</li>
 <li><b>Obchod:</b> před hodem lze s hráči měnit políčka, karty a peníze. Po odmítnutí až v dalším kole.</li>
 <li><b>Konec hry:</b> podle nastavení – poslední, kdo nezbankrotuje, nebo kdo první dosáhne cílové hotovosti či počtu políček.</li></ul>`})));}
