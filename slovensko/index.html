@@ -713,7 +713,7 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
   }
   // Jánošík bohatým bere a chudým dává: duel 3 kostkami s bohatším hráčem o jeho políčko
   const JANO_FEE = 2000;
-  function worth(g, i) { let w = g.players[i].cash; for (const k in g.own) if (g.own[k] === i) w += T[k].price || 0; return w; }
+  function worth(g, i) { return g.players[i].cash; }   // rozhoduje jen aktuální hotovost
   function janoTargets(g, p) {
     const me = worth(g, p.i);
     return Object.keys(g.own).map(Number).filter(k => { const o = g.own[k]; return o != null && o !== p.i && g.players[o].alive && isProp(k) && worth(g, o) > me; });
@@ -1474,7 +1474,7 @@ function renderPanel(){
     const jz=g.jano,sm=x=>x[0]+x[1]+x[2];
     P.append(header(p,"Banská Bystrica – Jánošík",`Hotovost ${fmt(p.cash)}`));
     if(!jz){const tg=E.janoTargets(g,p).sort((a,b)=>T[b].price-T[a].price||T[a].n.localeCompare(T[b].n));
-      P.append(h("p",{class:"note"},`Jánošík bohatým bere a chudým dává. Vyzvěte bohatšího hráče o jeho políčko: oba hodíte 3 kostkami, při remíze se hází znovu. Vyhrajete-li, políčko je vaše. Prohrajete-li, zaplatíte soupeři ${fmt(E.JANO_FEE)}.`),
+      P.append(h("p",{class:"note"},`Jánošík bohatým bere a chudým dává. Vyzvat můžete hráče, který má víc hotovosti než vy, o jedno jeho políčko: oba hodíte 3 kostkami, při remíze se hází znovu. Vyhrajete-li, políčko je vaše. Prohrajete-li, zaplatíte soupeři ${fmt(E.JANO_FEE)}.`),
         h("div",{class:"optlist"},tg.map(i=>h("button",{onclick:()=>act(()=>E.janosik(g,true,i))},h("span",null,`${T[i].n} – ${g.players[g.own[i]].name}`),h("span",{class:"cost"},fmt(T[i].price))))),
         h("button",{class:"btn ghost big",onclick:()=>act(()=>E.janosik(g,false))},"Nikoho nevyzvat"));tail(P);return;}
     const q=g.players[jz.opp];
@@ -1673,7 +1673,7 @@ function openRules(){sheet("Pravidla",b=>b.appendChild(h("div",{class:"rules",ht
 <li>Standardně se hází <b>2 kostkami zdarma</b>. Před hodem si lze zvolit <b>1 kostku za 5 000 €</b> nebo <b>3 kostky za 10 000 €</b>. Kdo hodí dvojici, hází znovu.</li>
 <li><b>Mapa okresů:</b> každý okres má jedno políčko – <b>pochutinu</b>, <b>pamětihodnost</b> nebo <b>nápoj</b> (pivo, víno nebo pálenku – symbol půllitru) (Bratislava a Košice jsou každé jedním městem). Banky Bratislava, Žilina a Košice spojují <b>4 barevné hlavní trasy</b>: <b>modrá</b> (Bratislava – střed Slovenska – Žilina), <b>zelená</b> (Bratislava – Považí – Žilina), <b>červená</b> (Žilina – sever a východ – Košice) a <b>žlutá</b> (Košice – Spiš a jih – Bratislava). Každá trasa má 16–18 okresů a 2 turistické značky své barvy. Zkratky na Slovensku nejsou.</li>
 <li><b>Banská Bystrica</b> leží mimo trasy – dostanete se do ní jen <b>vlakem</b> z Bratislavy, Žiliny nebo Košic. Vlak jezdí <b>zdarma</b> přes 2 zastávky; v Banské Bystrici se zastaví a dál se jede vlakem do kterékoli ze tří bank – je to levná spojka mezi bankami. Kdo do banky přijel vlakem, nemůže z ní hned vlakem odjet zpět – kromě Banské Bystrice. Banská Bystrica nic nevyplácí.</li>
-<li><b>Jánošík bohatým bere a chudým dává:</b> v Banské Bystrici můžete vyzvat hráče, který je bohatší než vy (hotovost + cena políček), o jedno jeho políčko. Oba hodíte 3 kostkami, při remíze se hází znovu. Vyhrajete-li, políčko je vaše. Prohrajete-li, zaplatíte soupeři ${fmt(E.JANO_FEE)}.</li>
+<li><b>Jánošík bohatým bere a chudým dává:</b> v Banské Bystrici můžete vyzvat hráče, který má právě víc hotovosti než vy (na políčkách a kartách nezáleží), o jedno jeho políčko. Oba hodíte 3 kostkami, při remíze se hází znovu. Vyhrajete-li, políčko je vaše. Prohrajete-li, zaplatíte soupeři ${fmt(E.JANO_FEE)}.</li>
 <li><b>Jízda</b> vede z banky do banky. Na křižovatce si vyberete směr. V jedné jízdě se nesmíte otočit ani projet stejný úsek dvakrát. Do žádné banky nelze dojet dvakrát po sobě úplně stejnou cestou. V bance figurka vždy zastaví.</li>
 <li><b>Kvíz:</b> před koupí si můžete vzít kvízovou otázku k políčku (možnosti A, B, C). Správná odpověď zlevní koupi na polovinu. Špatná odpověď políčko zdraží podle cenové kategorie: 2 500 € → +500 €, 4 000 € → +1 000 €, 6 000 € → +1 500 € (koupit pak nemusíte). Na každé políčko je ${D.quizN||15} otázek, odpovídá se jen jednou. Kdo má aspoň na polovinu ceny, může zkusit kvíz. Kvíz hrají i počítačoví hráči: lehký odpoví správně asi ve 40 % případů, střední v 60 % a těžký v 80 %.</li>
 <li>Na volném políčku můžete okres koupit. Na cizím políčku platíte majiteli <b>Stop</b>. Za <b>průjezd</b> cizím okresem platíte majiteli ${fmt(D.passFee||0)}.</li>
