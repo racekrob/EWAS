@@ -709,7 +709,10 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
       const ro = regionOwner(g, t.s);
       if (ro >= 0 && ro !== p.i) pay(g, p.i, ro, tollAmt(g, ro), `mýto – zastavení v kraji ${t.s}`);
     }
-    if (t.t === 'B' && i === BBI && p.alive && p.cash >= JANO_FEE && janoTargets(g, p).length) { g.phase = 'janosik'; g.jano = null; return; }
+    if (t.t === 'B' && i === BBI && p.alive) {   // Jánošík: hrát lze i bez hotovosti, prohra se případně řeší jako dluh
+      if (janoTargets(g, p).length) { g.phase = 'janosik'; g.jano = null; return; }
+      log(g, `Jánošík: ${p.name} nemá koho vyzvat – nikdo s vyšší hotovostí zatím nevlastní žádné políčko.`);
+    }
     finishTurnState(g);
   }
   // Jánošík bohatým bere a chudým dává: duel 3 kostkami s bohatším hráčem o jeho políčko
