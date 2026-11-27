@@ -284,6 +284,30 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
 @media (max-width:520px){.hero h1 .czflag{width:36px;height:24px;margin:0 8px}}
 .inset{fill:#f7f4ec;stroke:#2b2f2d;stroke-width:3;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25))}
 .okr{fill:none;stroke:rgba(60,60,60,.28);stroke-width:1.2;stroke-dasharray:5 5}.toll{fill:none;stroke:#4a4a4a;stroke-width:4;stroke-dasharray:10 7}.rwhite{stroke:#fff}.tollbg{fill:none;stroke:rgba(255,255,255,.85);stroke-width:9}.tlab{fill:#3d3d3d;stroke:#fff;stroke-width:2}.tlabt{fill:#fff;font:700 15px system-ui,sans-serif;text-anchor:middle}
+/*TUT-CSS-START*/
+.btn.tutbtn{background:linear-gradient(180deg,#ffd66b,#e3b505);color:#1d1d1f;border:none;font-weight:700}
+.tut-block{position:fixed;inset:0;z-index:9000;background:transparent}
+.tut-block.dim{background:rgba(10,12,16,.45)}
+.tut-hl{position:fixed;z-index:9001;border:3px solid #ffd66b;border-radius:12px;pointer-events:none;box-shadow:0 0 0 4000px rgba(10,12,16,.45),0 0 18px 4px rgba(255,214,107,.8);transition:all .25s ease;animation:tutpulse 1.6s ease-in-out infinite}
+@keyframes tutpulse{50%{border-color:#fff3c4}}
+.tut-bub{position:fixed;z-index:9002;left:50%;transform:translateX(-50%);width:min(420px,calc(100vw - 20px));max-height:calc(100vh - 20px);overflow:auto;background:#fffdf6;color:#1d1d1f;border-radius:16px;padding:14px 16px 12px;box-shadow:0 10px 40px rgba(0,0,0,.45);border:2px solid #e3b505;font-size:15px;line-height:1.45}
+.tut-bub h3{margin:0 0 6px;font-family:var(--f-ui,inherit);font-size:18px;letter-spacing:.02em;display:flex;gap:8px;align-items:center}
+.tut-bub h3 .tn{margin-left:auto;font-size:12px;font-weight:400;color:#8a7f66;white-space:nowrap}
+.tut-bub p{margin:0 0 8px}
+.tut-bub ul{margin:0 0 8px;padding-left:20px}.tut-bub li{margin:2px 0}
+.tut-bub .tb{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:6px}
+.tut-bub .tb button{font:inherit;font-size:14px;border-radius:10px;padding:7px 14px;border:1px solid #cbbf9f;background:#fff;color:#1d1d1f;cursor:pointer}
+.tut-bub .tb button.go{background:#c8102e;border-color:#c8102e;color:#fff;font-weight:700}
+.tut-bub .tb button.q{margin-right:auto;border:none;background:none;color:#8a7f66;padding-left:0}
+.tut-bub b.k{display:inline-block;min-width:20px;padding:0 5px;border-radius:6px;background:#1d1d1f;color:#fff;text-align:center;font-size:13px}
+.tut-bar{position:fixed;z-index:8500;left:8px;top:42%;display:flex;flex-direction:column;gap:8px}
+.tut-bar button{width:46px;height:46px;border-radius:50%;border:2px solid #e3b505;background:#fffdf6;font-size:22px;box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:pointer;color:#1d1d1f}
+.tut-bar button.x{font-size:18px;width:36px;height:36px;margin-left:5px;border-color:#cbbf9f}
+.tut-ring{fill:rgba(255,214,107,.18);stroke:#ffb400;stroke-width:4px;vector-effect:non-scaling-stroke;pointer-events:none;animation:tutring 1.3s ease-in-out infinite}
+@keyframes tutring{50%{stroke:#fff;stroke-width:7px;opacity:.75}}
+.tut-topics{display:flex;flex-direction:column;gap:8px}
+.tut-topics button{text-align:left}
+/*TUT-CSS-END*/
 .backmap{display:inline-block;margin-top:8px;font-family:var(--f-ui);font-size:15px;letter-spacing:.08em;color:#cdbf9c;text-decoration:none;border:1px solid rgba(205,191,156,.5);border-radius:8px;padding:3px 10px}.backmap:hover{color:#fff;border-color:#fff}
 </style>
 
@@ -1669,11 +1693,11 @@ async function play(){
   if(ON&&ON.host)commit();
   busy=true;drawOptions();
   while(g&&g.anim.length){const a=g.anim.shift();
-    if(a.dice){lastRoll={p:a.p,dice:a.dice};renderLastRoll(true);
+    if(a.dice){if(TUT)TUT.ev.push(a);lastRoll={p:a.p,dice:a.dice};renderLastRoll(true);
       if(a.again)toast(`${pname(a.p)}: dvojice – hází znovu!`,"plus",2200);
       const pp=g.players[a.p];if(pp&&isMine(pp.i)){const P=$("panel");P.innerHTML="";P.append(header(pp,`${pp.name} jede…`,`Hod ${a.dice.join(" + ")} = ${a.dice.reduce((x,y)=>x+y,0)}`),h("div",{class:"dice"},a.dice.map(v=>dieEl(v,true))));}
       await sleep(a.again?700:450);}
-    else if(a.pay){if(!a.amt)continue;
+    else if(a.pay){if(TUT)TUT.ev.push(a);if(!a.amt)continue;
       toast(a.to<0?`${pname(a.from)} platí ${fmt(a.amt)} · ${a.why}`:a.from<0?`${pname(a.to)} +${fmt(a.amt)} · ${a.why}`:`${pname(a.from)} → ${pname(a.to)}: ${fmt(a.amt)} · ${a.why}`,a.from<0?"plus":"minus");
       renderChips();flyBills(a.from,a.to,a.amt);await sleep(300);}
     else if(a.out!=null){shown[a.out]=-1;drawPawns();toast(`${g.players[a.out].name} vypadává ze hry.`,"minus",3500);await sleep(500);}
@@ -1688,18 +1712,18 @@ async function play(){
 }
 function render(){
   if(!g)return;
-  syncShown();paintOwnership();drawPawns();drawTrail();drawOptions();renderChips();renderPanel();renderLastRoll();save();
+  syncShown();paintOwnership();drawPawns();drawTrail();drawOptions();renderChips();renderPanel();renderLastRoll();save();tutTick();
 }
 async function act(fn){if(busy)return;busy=true;try{fn();}finally{busy=false;}await play();aiLoop();}
 let aiRunning=false;
 async function aiLoop(){
   if(aiRunning)return;aiRunning=true;
   if(ON&&!ON.host)return;
-  try{while(g&&g.phase!=="over"&&cur().ai){await sleep(g.phase==="buy"&&g.quiz?(g.quiz.ans==null?2200:1800):420);if(!g||busy)break;E.aiAct(g);await play();}}
+  try{while(g&&g.phase!=="over"&&cur().ai){await sleep(g.phase==="buy"&&g.quiz?(g.quiz.ans==null?2200:1800):420);while(TUT&&TUT.hold)await sleep(150);if(!g||busy)break;E.aiAct(g);await play();}}
   finally{aiRunning=false;}
 }
 // uložení
-function save(){if(ON){onlineSave();return;}try{if(g)localStorage.setItem("cesko-save1",JSON.stringify(Object.assign({},g,{anim:[]})));}catch(e){}}
+function save(){if(TUT)return;if(ON){onlineSave();return;}try{if(g)localStorage.setItem("cesko-save1",JSON.stringify(Object.assign({},g,{anim:[]})));}catch(e){}}
 function loadSaved(){try{const s=localStorage.getItem("cesko-save1");return s?JSON.parse(s):null;}catch(e){return null;}}
 function clearSave(){try{localStorage.removeItem("cesko-save1");}catch(e){}}
 
@@ -1711,7 +1735,7 @@ const LEVEL_DESC={1:"Počítač volí směr náhodně, kupuje opatrně a karty p
   2:"Počítač se dívá, kam dojede – vyhýbá se placení a míří na volná políčka. V obchodu chce přeplatit aspoň o 75 %.",
   3:"Počítač propočítá všechny cesty hodu včetně hodnoty nákupu (sbírky komodit, celé kraje), cíleně kupuje karty a kluby. V obchodu chce přeplatit aspoň o 150 %."};
 let setCash=30000,victory="last",targetCash=100000,targetTiles=15;
-function showSetup(){
+function showSetup(){if(TUT)tutKill();
   g=null;lastRoll=null;$("app").hidden=true;const S=$("setup");S.hidden=false;S.innerHTML="";
   const saved=loadSaved();const card=h("div",{class:"setup-card"});
   const inp=(val,set,step,min)=>h("input",{type:"number",step,min,value:val,oninput:e=>set(+e.target.value)});
@@ -1746,7 +1770,7 @@ function showSetup(){
       card.append(h("div",{class:"row"},h("button",{class:"btn",onclick:createOnline},"Založit online hru"),h("button",{class:"btn soft",onclick:()=>joinSheet("")},"Připojit se")));
       card.append(h("p",{class:"note"},"Hráči nastavení výše jako „Člověk“ (kromě prvního) se připojí ze svých telefonů pomocí kódu. Neobsazená místa převezme počítač, který hraje na zařízení zakladatele."));
     }
-    card.append(h("button",{class:"btn soft",onclick:openRules},"Pravidla"));
+    card.append(h("button",{class:"btn tutbtn",onclick:tutStart},"🎓 Tutoriál – naučte se hrát"));card.append(h("button",{class:"btn soft",onclick:openRules},"Pravidla"));
     card.append(h("p",{class:"note",style:"text-align:center;margin-top:-4px"},"Verze "+ITALIA_VERZE));
   };
   draw();
@@ -2061,6 +2085,196 @@ async function hostStart(){
   startGame(ng);commit();
 }
 
+/*TUT-START*/
+// ============ TUTORIÁL PRO NOVÉ HRÁČE ============
+// Ukázková hra proti jednomu počítači. Nápověda se ukáže vždy, když poprvé nastane nová situace;
+// tlačítko 🎓 kdykoli ukáže přehled témat přímo na mapě. Rozehraná hra se během tutoriálu neukládá.
+var TUT=null;
+const TUC={
+ name:"Česko",cur:"Kč",regionWord:"kraj (nebo národní park)",
+ trainName:"Pendolino",islandT:"Národní park",linksT:"Turistické značky",tollEntryT:"Placená zkratka",
+ intro:[
+  {t:"Vítejte v EWAS Česko",x:"<p><b>Explore with All Senses</b> – cestujete po Česku mezi bankami, kupujete okresy se specialitami, pamětihodnostmi a pivy a inkasujete výplaty v bankách a poplatky od ostatních hráčů.</p><p>V tutoriálu hrajete proti jednomu počítači. Kdykoli nastane nová situace, ukáže se vysvětlení. Pokračujte tlačítkem <b>Další</b>.</p>"},
+  {t:"Mapa a trasy",fit:true,tiles:()=>[0,1,2,3],x:"Banky <b>Plzeň</b>, <b>Brno</b> a <b>Ostrava</b> spojují čtyři barevné hlavní trasy: severní (modrá), střední (červená), jižní (zelená) a východní (žlutá). <b>Praha</b> a okresy kolem ní leží mimo trasy – vedou do nich drahé placené zkratky. Mapu můžete posouvat a přibližovat prsty nebo kolečkem myši."},
+  {t:"Banky a výplaty",fit:true,tiles:()=>[0,1,2,3],x:"<ul><li><b>Plzeň</b> vyplácí za piva,</li><li><b>Brno</b> za pamětihodnosti,</li><li><b>Ostrava</b> za speciality,</li><li><b>Praha</b> 1 000 Kč za každý váš okres (od 10 okresů dvojnásobek, od 20 čtyřnásobek).</li></ul>Plzeň, Brno a Ostrava vyplácejí jen tehdy, když jste mezitím navštívili jinou z nich."},
+  {t:"Horní lišta",a:"#chips",x:"Každý hráč má v liště svou figurku, <b>hotovost</b> a počet políček podle druhů (speciality, pamětihodnosti, piva, turistické značky) a u české vlajky počet okresů pro výplatu v Praze. Klepnutím na hráče zobrazíte jeho majetek."},
+  {t:"Nabídka",a:"#menuBtn",x:"V nabídce <b>☰</b> najdete pravidla, majetek všech hráčů, záznam hry a zrychlení tahů počítače."},
+  {t:"Tutoriál po ruce",a:".tut-bar",x:"Tlačítkem <b>🎓</b> si kdykoli zobrazíte témata – turistické značky a národní parky, Pendolino, zkratky, Prahu, mýto, karty… – přímo na mapě. Tlačítkem <b>✕</b> tutoriál ukončíte. Teď začne hra.",btn:"Začít hrát"}
+ ],
+ pick:"Vyberte, ve které bance začnete. <b>Plzeň</b> vyplácí za piva, <b>Brno</b> za pamětihodnosti, <b>Ostrava</b> za speciality a <b>Praha</b> za počet vašich okresů.",
+ buyMore:" Kdo vaším okresem jen projíždí, platí vám <b>průjezd</b> 1 500 {c}.",
+ chooseMore:"<li>Hra nabízí jen směry, kterými se dá dojet do banky s výplatou.</li>",
+ payout:"V bance dostáváte výplatu za každé své políčko druhu, který banka vyplácí (Plzeň piva, Brno pamětihodnosti, Ostrava speciality), v Praze 1 000 Kč za každý okres. Násobí ji sbírka (5–9 kusů ×2, od 10 ×3) a karty Labužník / Pivní znalec / Průvodce. Plzeň, Brno a Ostrava vyplatí znovu, až mezitím navštívíte jinou z nich; Praha vyplácí při každé návštěvě, jen ne dvakrát po sobě.",
+ bankNoPay:"V bance figurka vždy zastaví. Výplatu dostanete jen za políčka druhu, který tato banka vyplácí – a v Plzni, Brně a Ostravě jen když jste mezitím byli v jiné z nich (Praha se jako vystřídání nepočítá). Klepnutím na banku na mapě zjistíte, kolik by kdo inkasoval.",
+ stopMore:" a karty Labužník / Pivní znalec / Průvodce",
+ toll:"Kdo vlastní všechny okresy kraje (nebo celý národní park), kraj se podbarví jeho barvou a vybírá <b>mýto</b>: 2 000 Kč za vjezd a 2 000 Kč za zastavení. Karta <b>Hejtman</b> mýto zdvojnásobí.",
+ tollEntry:"Šedé přerušované <b>zkratky</b> propojují trasy mezi sebou a vedou do Prahy. Za zkratku se platí bance jednou, při vjezdu: 2 000 až 8 000 Kč podle toho, jak blízko bance vede (cena je napsaná na zkratce); zkratky do Prahy stojí vždy 8 000 Kč. Okresy na zkratkách jsou dostupné jen po nich.",
+ train:"<b>Pendolino</b>: nástup jen v bance za 24 000 Kč (12 000 Kč za každou polovinu trati). Po dvou stanicích je na Vysočině křižovatka – vyberete si, do které ze tří dalších bank pojedete. Pak se jede po zemi. S kartou <b>České dráhy</b> jezdíte zdarma a jízdenky ostatních platí vám.",
+ links:"Každá hlavní trasa nese 2 turistické značky své barvy. Modré a červené vedou do <b>Krkonošského národního parku</b> (výřez vpravo nahoře), zelené a žluté do <b>Národního parku Šumava</b> (výřez vlevo dole). Cesta do parku trvá 5 kroků. Použití cizí značky stojí 2 000 Kč jejímu majiteli. Mapa turistických tras dané barvy zkrátí cestu na 1 krok.",
+ linkBuy:"Turistická značka se dá koupit. <b>Stop</b> na cizí značce je 2 000 Kč × počet značek majitele a použití cizí značky k odchodu nebo příchodu stojí 2 000 Kč. Kdo zastaví na cizí značce na mapě Česka, musí příští tah do národního parku.",
+ island:"Jste v národním parku. Park se musí obejít aspoň jednou dokola, teprve pak se z něj dá odejít po značce. V každém parku jsou 2 speciality, 2 pamětihodnosti a 2 piva a celý park se počítá jako kraj.",
+ forceLink:"Zastavili jste na cizí turistické značce – příští tah musíte jít do národního parku (kdo má mapu turistických tras té barvy, nemusí).",
+ special:null,
+ cards:"Speciální karty se kupují na začátku tahu: <ul><li><b>Mapy turistických tras</b> (4 barvy) – cesta do parku trvá 1 krok, ostatní vám platí 2 000 Kč za zastavení na trase.</li><li><b>Okresní přeborník</b> – dvojnásobná výplata za okresy v Praze.</li><li><b>Labužník / Pivní znalec / Průvodce</b> – dvojnásobný Stop i výplata za speciality / piva / pamětihodnosti.</li><li><b>Hejtman</b> – dvojnásobné mýto.</li><li><b>České dráhy</b> – Pendolino zdarma, jízdenky ostatních platí vám.</li><li><b>Kluby</b> – 15 000 Kč navíc v bance; kdo na klubu zastaví, dostane od vás 1 000 Kč za každou svou komoditu.</li><li><b>Mafie</b> – kdo vás s ní potká na trase, vypadá ze hry.</li></ul>",
+ topics:[
+  {t:"Banky a výplaty",fit:true,tiles:()=>[0,1,2,3],x:"Plzeň vyplácí za piva, Brno za pamětihodnosti, Ostrava za speciality, Praha 1 000 Kč za každý okres. Plzeň, Brno a Ostrava vyplácejí jen po vystřídání jinou z nich. Sbírka 5–9 komodit ×2, od 10 ×3."},
+  {t:"Praha a zkratky",tiles:()=>[0].concat(T.map((t,i)=>t.tollOnly?i:-1).filter(i=>i>=0)),x:"Praha a okresy kolem ní leží mimo hlavní trasy. Vedou k nim šedé přerušované zkratky – platí se jednou při vjezdu, 2 000 až 8 000 Kč, do Prahy vždy 8 000 Kč. Praha vyplácí 1 000 Kč za každý váš okres."},
+  {t:"Pendolino",tiles:()=>T.map((t,i)=>t.t==="train"?i:-1).filter(i=>i>=0),x:"Pendolino: nástup jen v bance za 24 000 Kč (12 000 Kč za polovinu). Na Vysočině je křižovatka – vyberete si cílovou banku. S kartou České dráhy jezdíte zdarma."},
+  {t:"Turistické značky a parky",fit:true,tiles:()=>T.map((t,i)=>t.t==="P"?i:-1).filter(i=>i>=0),x:"8 turistických značek vede do Krkonoš a na Šumavu (výřezy). Park se musí obejít jednou dokola. Stop na cizí značce je 2 000 Kč × počet značek majitele, použití cizí značky stojí 2 000 Kč."},
+  {t:"Koupě a kvíz",a:"#panel",x:"Na volném políčku ho můžete koupit. Kvíz před koupí: správná odpověď = poloviční cena, špatná odpověď políčko zdraží (2 500 Kč → +500 Kč, 4 000 Kč → +1 000 Kč, 6 000 Kč → +1 500 Kč)."},
+  {t:"Stop, sbírky a mýto",a:"#chips",x:"Na cizím políčku platíte <b>Stop</b>. Sbírka 5–9 komodit stejného druhu: Stop ×2, od 10 komodit ×4. Kdo vlastní celý kraj, vybírá mýto 2 000 Kč za vjezd i zastavení."},
+  {t:"Speciální karty",a:"#panel",x:"Karty kupujete na začátku tahu tlačítkem <b>Speciální karty</b>: mapy turistických tras, Okresní přeborník, Labužník, Pivní znalec, Průvodce, Hejtman, České dráhy, kluby a Mafie. Popis každé karty najdete po klepnutí na ni."},
+  {t:"Obchod, dluh a konec hry",a:"#menuBtn",x:"Před hodem můžete s hráči měnit políčka, karty a peníze (po odmítnutí až v dalším kole). Kdo je v mínusu, prodá majetek bance, jinak zbankrotuje. Konec hry podle nastavení: poslední nezbankrotovaný, cílová hotovost nebo počet políček."}
+ ]
+};
+const _tutRand=Math.random;
+Math.random=function(){return (TUT&&TUT.rq&&TUT.rq.length)?TUT.rq.shift():_tutRand();};
+const tutDie=v=>(v-1)/6+0.07;
+function tutStart(){
+  const ps=[{name:"Vy",color:"blue",ai:false,level:0},{name:"Soupeř",color:"red",ai:true,level:1}];
+  const ng=E.newGame(ps,{cash:setCash||30000});
+  ng.pickOrder=[0,1];ng.pickIdx=0;ng.cur=0;ng.log=["Tutoriál: ukázková hra proti počítači. Začínáte vy."];
+  TUT={q:[],seen:{},ev:[],hold:true,lastPos:{},own0:0,myTurns:0,rq:null,cur:null};
+  TUT.q.push(...TUC.intro.map((s,k,a)=>Object.assign({n:`${k+1}/${a.length}`},s)));
+  tutBar();
+  startGame(ng);
+}
+function tutKill(){
+  if(!TUT)return;TUT=null;tutClear();const b=document.querySelector(".tut-bar");if(b)b.remove();
+}
+function tutQuit(){
+  tutKill();showSetup();
+}
+function tutBar(){
+  const old=document.querySelector(".tut-bar");if(old)old.remove();
+  document.body.append(h("div",{class:"tut-bar"},
+    h("button",{title:"Tutoriál – témata","aria-label":"Tutoriál – témata",onclick:tutTopics},"🎓"),
+    h("button",{class:"x",title:"Ukončit tutoriál","aria-label":"Ukončit tutoriál",onclick:()=>confirmBox("Ukončit tutoriál a vrátit se na úvodní obrazovku?","Ukončit",tutQuit)},"✕")));
+}
+function tutClear(){
+  document.querySelectorAll(".tut-block,.tut-hl,.tut-bub").forEach(e=>e.remove());
+  svg.querySelectorAll(".tut-ring").forEach(e=>e.remove());
+}
+function tutTarget(a){
+  if(!a)return null;
+  if(typeof a==="function")return a();
+  if(a.text){const els=[...document.querySelectorAll(a.sel)].filter(e=>e.offsetParent&&e.textContent.includes(a.text));return els[0]||null;}
+  const e=document.querySelector(a);return e&&e.offsetParent!==null?e:null;
+}
+const tutFill=s=>String(s).replace(/\{c\}/g,TUC.cur);
+// zobrazení jednoho kroku: {t:nadpis, x:html, a:selektor|"map", tiles:[...]|fn, fit:true, btn, after:fn}
+function tutShow(st){
+  tutClear();TUT.hold=true;TUT.cur=st;
+  const tiles=typeof st.tiles==="function"?st.tiles():(st.tiles||[]);
+  if(st.fit)fitMap();else if(tiles.length)focus(tiles,st.minW||900);
+  const sr=svg.getBoundingClientRect(),upp=Math.max(vb.w/Math.max(1,sr.width),vb.h/Math.max(1,sr.height));
+  const R=Math.max(Math.max(MW,MH)/90,20*upp);
+  tiles.forEach(i=>el("circle",{cx:T[i].x,cy:T[i].y,r:R,class:"tut-ring"},svg));
+  const tgt=st.a&&st.a!=="map"?tutTarget(st.a):null;
+  document.body.append(h("div",{class:"tut-block"+(tgt||st.a==="map"||tiles.length||st.fit?"":" dim")}));
+  if(tgt){const r=tgt.getBoundingClientRect(),pad=6;
+    document.body.append(h("div",{class:"tut-hl",style:`left:${r.left-pad}px;top:${r.top-pad}px;width:${r.width+2*pad}px;height:${r.height+2*pad}px`}));}
+  const close=next=>{tutClear();TUT.cur=null;if(st.after)st.after();if(next)next();tutNext();};
+  const btns=h("div",{class:"tb"});
+  if(!st.noquit)btns.append(h("button",{class:"q",onclick:()=>confirmBox("Ukončit tutoriál a vrátit se na úvodní obrazovku?","Ukončit",tutQuit)},"Ukončit tutoriál"));
+  (st.extra||[]).forEach(b=>btns.append(h("button",{onclick:()=>close(b.fn)},b.l)));
+  btns.append(h("button",{class:"go",onclick:()=>close()},st.btn||(TUT.q.length?"Další":"Rozumím")));
+  const bub=h("div",{class:"tut-bub",role:"dialog","aria-live":"polite"},
+    h("h3",null,"🎓 ",st.t,st.n?h("span",{class:"tn"},st.n):null),h("div",{html:tutFill(st.x)}),btns);
+  document.body.append(bub);
+  // umístění bubliny: nad cílem v dolní polovině, pod cílem v horní, jinak nad panelem
+  const vh=innerHeight,br=bub.getBoundingClientRect();
+  let top;const vw=innerWidth,wide=vw>=900;
+  const side=(left)=>{bub.style.left=Math.max(8,left)+"px";bub.style.transform="none";};
+  if(tgt){const r=tgt.getBoundingClientRect();
+    if(wide&&r.left>vw*.5&&r.left-br.width-24>8){side(r.left-br.width-24);top=r.top+r.height-br.height;}
+    else if(wide&&r.right<vw*.5&&r.height>vh*.5){side(r.right+24);top=r.top;}
+    else top=(r.top+r.height/2>vh/2)?r.top-br.height-14:r.bottom+14;}
+  else if(wide&&(st.a==="map"||tiles.length||st.fit)){side(16);top=vh-br.height-16;}
+  else if(st.a==="map"||tiles.length||st.fit){const p=$("panel"),pr=p&&p.offsetParent?p.getBoundingClientRect():null;
+    top=pr&&pr.top>vh*.35?pr.top-br.height-12:vh-br.height-12;}
+  else top=(vh-br.height)/2;
+  bub.style.top=Math.max(8,Math.min(vh-br.height-8,top))+"px";
+  const go=bub.querySelector("button.go");if(go)go.focus({preventScroll:true});
+}
+function tutNext(){
+  if(!TUT)return;
+  if(TUT.q.length){tutShow(TUT.q.shift());return;}
+  TUT.hold=false;
+}
+function tutHint(key,st){
+  if(!TUT||TUT.seen[key])return;TUT.seen[key]=1;
+  if(st)TUT.q.push(st);
+}
+// volá se po každém překreslení hry
+function tutTick(){
+  if(!TUT||!g)return;
+  const me=g.players[0],ph=g.phase,mine=g.cur===0,C=TUC,H=tutHint;
+  // události z přehrání tahu
+  const ev=TUT.ev;TUT.ev=[];
+  ev.forEach(a=>{
+    if(a.dice){TUT.rq=null;
+      if(a.again)H("double",{t:"Dvojice",x:"Kdo hodí dvěma kostkami dvojici, po dojetí hází znovu ve stejném tahu."});
+      return;}
+    const w=a.why||"";
+    if(/^Stop/.test(w)&&a.from===0)H("stopOut",{t:"Poplatek Stop",a:"#chips",x:"Zastavili jste na políčku, které patří soupeři, a zaplatili jste mu <b>Stop</b>. Výše poplatku je na kartě políčka. Násobí ji sbírka (5–9 komodit stejného druhu ×2, od 10 ×4)"+(C.stopMore||"")+"."});
+    if(/^Stop/.test(w)&&a.to===0)H("stopIn",{t:"Soupeř vám platí",a:"#chips",x:"Soupeř zastavil na vašem políčku a zaplatil vám <b>Stop</b>. Čím víc políček na frekventovaných místech vlastníte, tím víc vyděláte na tazích ostatních."});
+    if(/^výplata v bance/.test(w)&&a.to===0)H("payout",{t:"Výplata v bance",a:"#chips",x:C.payout});
+    if(/^mýto/.test(w))H("toll",{t:"Mýto",x:C.toll});
+    if(/^použití/.test(w))H("linkOpt",{t:"Použití cizí linky",x:C.links});
+    if(/^průjezd/.test(w))H("pass",{t:"Průjezd",a:"#chips",x:`${a.from===0?"Projeli jste cizím okresem":"Soupeř projel vaším okresem"} – za průjezd se platí majiteli ${fmt(D.passFee||a.amt)} při každém projetí. Stop se platí navíc jen tomu, kdo na políčku zastaví.`});
+    if(/^jízdenka/.test(w)&&a.from===0)H("ticket",{t:C.trainName,x:C.train});
+  });
+  // banka bez výplaty
+  const lp=TUT.lastPos[0];
+  if(me.pos!==lp){TUT.lastPos[0]=me.pos;
+    if(lp!=null&&lp>=0&&me.pos>=0&&T[me.pos].t==="B"&&!TUT.seen.payout&&ph!=="janosik")
+      H("bankNoPay",{t:"Banka",a:"#chips",x:C.bankNoPay});
+    if(me.pos>=0&&me.island)H("island",{t:C.islandT,x:C.island});
+  }
+  if(me.forceLink)H("forceLink",{t:C.islandT,x:C.forceLink});
+  const own=Object.keys(g.own).filter(k=>g.own[k]===0).length;
+  if(own>TUT.own0){TUT.own0=own;
+    H("bought",{t:"Políčko je vaše",a:"#chips",x:"Koupené políčko má na mapě vaši barvu a v horní liště přibylo u příslušného symbolu. <ul><li><b>Sbírka:</b> 5–9 komodit stejného druhu = dvojnásobná výplata v bance i Stop, od 10 komodit trojnásobná výplata a čtyřnásobný Stop.</li><li><b>Region:</b> kdo vlastní "+C.regionWord+" celý, vybírá mýto.</li></ul>"});}
+  // fáze hry
+  if(ph==="pick"&&mine)H("pick",{t:"Startovní banka",a:"#panel",x:C.pick});
+  if(ph==="turn"&&mine){
+    TUT.turnSeen=TUT.turnSeen||{};
+    if(!TUT.turnSeen[g.round+"/"+(g.rolls||0)]){TUT.turnSeen[g.round+"/"+(g.rolls||0)]=1;TUT.myTurns++;
+      if(TUT.myTurns===1)TUT.rq=[tutDie(2),tutDie(1)];
+      if(TUT.myTurns===2)TUT.rq=[tutDie(3),tutDie(3)];}
+    H("turn",{t:"Jste na tahu",a:"#panel",x:"Standardně se hází <b>2 kostkami zdarma</b>. Před hodem si můžete zvolit <b>1 kostku za 5 000 {c}</b> (když potřebujete dojet jen kousek) nebo <b>3 kostky za 10 000 {c}</b>.<br>Ještě před hodem můžete koupit <b>speciální karty</b>, prohlédnout si <b>majetek</b> nebo nabídnout <b>obchod</b>.<p style='margin-top:6px'>Teď klepněte na <b>Hodit kostkami</b>.</p>"});
+    if(g.round>=3&&TUT.seen.bought)H("cards",{t:"Speciální karty",a:{sel:"#panel button",text:"Speciální karty"},x:C.cards});
+    if(g.round>=5&&TUT.seen.cards)H("outro",{t:"Základy znáte",x:"Teď už znáte celý průběh tahu. Můžete tuto ukázkovou hru dohrát – nápověda se ukáže pokaždé, když nastane nová situace.<ul><li>Tlačítkem <b>🎓</b> vpravo si kdykoli zobrazíte témata na mapě (přístavy, vlak, mýto, karty…).</li><li>Tlačítkem <b>✕</b> tutoriál ukončíte a založíte skutečnou hru.</li><li>Úplná pravidla jsou v nabídce <b>☰ → Pravidla</b>.</li></ul>"});
+  }
+  if(ph==="choose"&&mine){
+    H("choose",{t:"Kudy pojedete?",a:"map",x:"Na křižovatce a při výjezdu z banky si vybíráte směr – klepněte na <b>číslo na mapě</b> nebo na tlačítko dole. Nahoře vidíte, kolik kroků ještě zbývá.<ul><li>Jízda vede vždy z banky do banky a v bance figurka vždy zastaví.</li><li>V jedné jízdě se nesmíte otočit ani projet stejný úsek dvakrát.</li>"+(C.chooseMore||"")+"</ul>"});
+    const ks=new Set(g.opts.map(o=>o.k));
+    if(ks.has("train"))H("trainOpt",{t:C.trainName,a:"map",x:C.train});
+    if(ks.has("toll")&&C.tollEntry)H("tollOpt",{t:C.tollEntryT,a:"map",x:C.tollEntry});
+    if(ks.has("sea")||ks.has("air"))H("linkOpt",{t:C.linksT,a:"map",x:C.links});
+  }
+  if(ph==="buy"&&mine){const t=T[g.offer];
+    if("PA".includes(t.t))H("buyLink",{t:C.linksT,a:"#panel",x:C.linkBuy});
+    else H("buy",{t:"Volné políčko – koupit?",a:"#panel",x:"Zastavili jste na volném políčku. Karta ukazuje <b>cenu</b>, poplatek <b>Stop</b> (ten vám zaplatí každý, kdo tu zastaví) a <b>výplatu</b> v bance."+(C.buyMore||"")+"<ul><li><b>Koupit</b> můžete hned za plnou cenu.</li><li>Nebo nejdřív zkuste <b>kvíz</b>: správná odpověď zlevní koupi na polovinu, špatná políčko zdraží (koupit pak nemusíte).</li><li>Kdo má aspoň na polovinu ceny, může kvíz zkusit.</li></ul>Zkuste teď kvíz."});
+    if(g.quiz&&g.quiz.ans==null)H("quiz",{t:"Kvíz",a:"#panel",x:"Vyberte jednu ze tří odpovědí. Ke každému políčku je v databázi "+(D.quizN||15)+" otázek a na každou se odpovídá jen jednou. Kvíz hrají i počítačoví hráči."});
+  }
+  if(ph==="janosik"&&mine&&C.special)H("special",{t:C.special.t,a:"#panel",x:C.special.x});
+  if(ph==="debt"&&mine)H("debt",{t:"Dluh",a:"#panel",x:"Máte zápornou hotovost. Prodejte bance majetek za nákupní cenu (políčka nebo karty), dokud nebudete v plusu. Když to nejde, vyhlásíte bankrot a ze hry vypadáváte."});
+  if(!mine&&g.players[g.cur].ai&&ph!=="over"&&ph!=="pick")H("ai",{t:"Hraje soupeř",a:"#chips",x:"Teď táhne počítač. Jeho jízdu sledujte na mapě, platby se ukazují v bublinách a v horní liště. Tahy počítače lze zrychlit v nabídce <b>☰</b>."});
+  if(ph==="over")H("over",{t:"Konec hry",x:"Ukázková hra skončila. V nastavení skutečné hry si vyberete konec: poslední, kdo nezbankrotuje, nebo kdo první dosáhne cílové hotovosti či počtu políček.",btn:"Na úvodní obrazovku",after:()=>{tutKill();showSetup();},noquit:true});
+  if(TUT&&!TUT.cur&&TUT.q.length)tutNext();
+  else if(TUT&&!TUT.cur)TUT.hold=false;
+}
+function tutTopics(){
+  if(!TUT)return;
+  sheet("Tutoriál – témata",(b,close)=>{
+    b.append(h("p",{class:"note"},"Vyberte téma – ukáže se na mapě s vysvětlením."));
+    b.append(h("div",{class:"tut-topics"},TUC.topics.map(tp=>h("button",{class:"btn soft",onclick:()=>{close();
+      TUT.q.unshift(Object.assign({btn:"Zpět do hry"},tp));if(!TUT.cur)tutNext();}},tp.t))));
+  });
+}
+/*TUT-END*/
 const ITALIA_VERZE="Česko – prototyp 22. 11. 2026";
 $("menuBtn").onclick=openMenu;
 function start(data){
