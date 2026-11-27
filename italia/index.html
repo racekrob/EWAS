@@ -1001,10 +1001,30 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
     const near = opp.some(q => q.pos >= 0 && T[q.pos].loop === T[p.pos].loop && T[q.pos].t !== 'B');
     return worth(g, leader.i) > worth(g, p.i) * 0.8 || near || Math.random() < 0.35;
   }
+  // Mafie: počítač si ji najme, když má dost peněz a soupeř je na trase v dosahu hodu,
+  // když je hodně bohatý (i proto, aby ji nemohl použít soupeř), nebo když výrazně vede
+  function mafiaNear(g, p, max) {
+    const tg = new Set(g.players.filter(q => q.alive && q.i !== p.i && q.pos >= 0 && T[q.pos].t !== 'B').map(q => q.pos));
+    if (!tg.size || p.pos < 0) return false;
+    const d = new Map([[p.pos, 0]]), q = [p.pos];
+    while (q.length) { const x = q.shift(); if (d.get(x) > 0 && tg.has(x)) return true; if (d.get(x) >= max) continue;
+      for (const e of (D.adj[x] || [])) { if (d.has(e.to)) continue; d.set(e.to, d.get(x) + 1); q.push(e.to); } }
+    return false;
+  }
+  function mafiaBuy(g, p, spare, L) {
+    const reserve = L >= 3 ? 15000 : L === 2 ? 40000 : 80000;
+    if (spare < reserve) return false;
+    const opp = g.players.filter(q => q.alive && q.i !== p.i);
+    if (!opp.length) return false;
+    const rich = spare >= CARDS.mafia.price * (L >= 3 ? 0.5 : 1);
+    const lead = opp.every(q => worth(g, p.i) > worth(g, q.i) * 1.3);
+    if (!(rich || lead || mafiaNear(g, p, 18))) return false;
+    return Math.random() < (L >= 3 ? 1 : L === 2 ? 0.8 : 0.5);
+  }
   function aiCards(g, p) {
     const L = lvl(p), own = k => kindCount(g, p.i, k);
     const regions = Object.keys(REG).filter(r => regionOwner(g, r) === p.i).length;
-    for (const o of cardOptions(g, p.i)) {
+    for (const o of cardOptions(g, p.i).sort((a, b) => (b.c === 'mafia') - (a.c === 'mafia'))) {
       if (!o.can) continue;
       const def = CARDS[o.c], spare = p.cash - o.price;
       if (L >= 3) {
@@ -1013,7 +1033,7 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
         else if (o.c === 'provincie' && regions >= 2 && spare > 15000) buyCard(g, p.i, o.c);
         else if (o.c === 'treni' && spare > 60000) buyCard(g, p.i, o.c);
         else if ((o.c === 'lodni' || o.c === 'aero') && spare > 80000) buyCard(g, p.i, o.c);
-        else if (o.c === 'mafia' && spare >= 10000 && mafiaWorth(g, p)) buyCard(g, p.i, o.c);
+        else if (o.c === 'mafia' && mafiaBuy(g, p, spare, L)) buyCard(g, p.i, o.c);
       } else {
         const r = L === 1 ? 1.4 : 1;   // snadná kupuje později
         if (def.kind && own(def.kind) >= 6 && spare > 20000 * r) buyCard(g, p.i, o.c);
@@ -1021,7 +1041,7 @@ label.fl input{border:2px solid var(--paper-3);border-radius:8px;padding:9px;fon
         else if (o.c === 'provincie' && regions >= 2 && spare > 25000 * r) buyCard(g, p.i, o.c);
         else if (o.c === 'treni' && spare > 80000 * r) buyCard(g, p.i, o.c);
         else if ((o.c === 'lodni' || o.c === 'aero') && spare > 120000 * r) buyCard(g, p.i, o.c);
-        else if (o.c === 'mafia' && spare > (L === 1 ? 60000 : 30000) && Math.random() < (L === 1 ? 0.5 : 0.4)) buyCard(g, p.i, o.c);
+        else if (o.c === 'mafia' && mafiaBuy(g, p, spare, L)) buyCard(g, p.i, o.c);
       }
     }
     Object.keys(g.cards).forEach(c => { if (g.cards[c] === p.i && CARDS[c].club && !clubValid(g, c)) { const ts = clubTiles(g, p.i, c).sort((a, b) => T[b].price - T[a].price); if (ts.length) placeClub(g, p.i, c, ts[0]); } });
